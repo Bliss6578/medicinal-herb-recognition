@@ -26,7 +26,7 @@ jobs:
       # 1. Install pnpm before setup-node so the action can locate pnpm and setup cache properly
       - uses: pnpm/action-setup@v3
         with:
-          version: 9
+          version: 10
 
       # 2. Set up Node.js with caching configured for your subdirectory lockfile
       - uses: actions/setup-node@v4
