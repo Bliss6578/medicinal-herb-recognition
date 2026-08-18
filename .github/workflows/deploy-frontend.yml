@@ -22,34 +22,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      # 1. Install pnpm first so setup-node can locate it for caching
-      - uses: pnpm/action-setup@v3
-        with:
-          version: 9
-
-      # 2. Set up Node.js with pnpm cache enabled
+      - name: Enable Corepack
+        run: corepack enable
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: pnpm
           cache-dependency-path: frontend/herbwise-recognition/pnpm-lock.yaml
-
       - name: Install frontend dependencies
         working-directory: frontend/herbwise-recognition
         run: pnpm install --frozen-lockfile
-
       - name: Build frontend
         working-directory: frontend/herbwise-recognition
         env:
           VITE_API_BASE_URL: ${{ vars.API_BASE_URL }}
         run: pnpm build
-
       - uses: actions/configure-pages@v5
-
       - uses: actions/upload-pages-artifact@v3
         with:
           path: frontend/herbwise-recognition/dist/public
-
       - id: deployment
         uses: actions/deploy-pages@v4
