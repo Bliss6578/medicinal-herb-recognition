@@ -2,9 +2,13 @@
 
 from __future__ import annotations
 
+# 1. Suppress TensorFlow stderr warning logs before importing TF
+import os
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
+
 import io
 import json
-import os
+from contextlib import asynccontextmanager
 from functools import lru_cache
 from pathlib import Path
 
@@ -21,21 +25,40 @@ MODEL_PATH = ARTIFACT_DIR / "medicinal_leaf_classifier.keras"
 METADATA_PATH = ARTIFACT_DIR / "metadata.json"
 MAX_UPLOAD_BYTES = 10 * 1024 * 1024
 
-app = FastAPI(title="Herbwise Recognition API", version="1.0.0")
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=os.getenv("CORS_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173,http://localhost:3000,http://127.0.0.1:3000").split(","),
-    allow_credentials=False,
-    allow_methods=["GET", "POST"],
-    allow_headers=["*"],
-)
-
 
 @lru_cache
 def load_artifacts() -> tuple[tf.keras.Model, dict]:
     if not MODEL_PATH.exists() or not METADATA_PATH.exists():
         raise FileNotFoundError("Model artifacts are missing. Run training/train.py first.")
     return tf.keras.models.load_model(MODEL_PATH), json.loads(METADATA_PATH.read_text(encoding="utf-8"))
+
+
+# 2. Pre-warm model into RAM at startup so initial user requests are fast
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    if MODEL_PATH.exists() and METADATA_PATH.exists():
+        load_artifacts()
+    yield
+
+
+app = FastAPI(title="Herbwise Recognition API", version="1.0.0", lifespan=lifespan)
+
+# 3. Handle CORS for production frontend domains (allows localhost + deployed frontend)
+raw_origins = os.getenv("CORS_ORIGINS", "")
+origins = [origin.strip() for origin in raw_origins.split(",") if origin.strip()] if raw_origins else ["*"]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+@app.get("/")
+def read_root():
+    return {"message": "Herbwise Recognition API is running!"}
 
 
 @app.get("/health")
