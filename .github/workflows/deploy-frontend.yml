@@ -28,6 +28,7 @@ jobs:
         with:
           node-version: 22
           cache: pnpm
+          cache-dependency-path: 'frontend/herbwise-recognition/pnpm-lock.yaml'
       - name: Install frontend dependencies
         working-directory: frontend/herbwise-recognition
         run: pnpm install --frozen-lockfile
