@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: herbwise-api
+    runtime: docker
+    plan: free
+    healthCheckPath: /health
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    autoDeploy: true

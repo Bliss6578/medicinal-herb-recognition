@@ -1,0 +1,25 @@
+# Operating-system and editor files
+.DS_Store
+.vscode/
+
+# Python environments and generated training data
+training/venv/
+training/dataset/
+__pycache__/
+*.py[cod]
+
+# Node packages and build products
+frontend/herbwise-recognition/node_modules/
+frontend/herbwise-recognition/dist/
+frontend/herbwise-recognition/.vite/
+
+# Local configuration and logs
+.env
+.env.*
+!.env.example
+*.log
+
+# Keep the exported classifier required by the deployed API.
+!training/artifacts/
+!training/artifacts/medicinal_leaf_classifier.keras
+!training/artifacts/metadata.json
