@@ -3,8 +3,8 @@ import { useEffect, useRef, useState } from "react";
 import { Camera, Check, ChevronDown, ImagePlus, Leaf, LoaderCircle, RotateCcw, ScanLine, ShieldCheck, Sparkles, Upload, X } from "lucide-react";
 import { toast } from "sonner";
 
-const specimenImage = "/herb-samples/neem.jpg";
-const heroImage = "/herb-samples/pomegranate.jpg";
+const specimenImage = `${import.meta.env.BASE_URL}herb-samples/neem.jpg`;
+const heroImage = `${import.meta.env.BASE_URL}herb-samples/pomegranate.jpg`;
 const predictionApi =
   import.meta.env.VITE_API_BASE_URL ??
   (import.meta.env.DEV ? "http://127.0.0.1:8000" : "https://herbwise-api.onrender.com");
