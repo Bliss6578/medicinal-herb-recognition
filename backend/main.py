@@ -4,6 +4,7 @@ from __future__ import annotations
 
 # 1. Suppress TensorFlow stderr warning logs before importing TF
 import os
+from urllib.parse import urlsplit
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
 import io
@@ -45,7 +46,19 @@ app = FastAPI(title="Herbwise Recognition API", version="1.0.0", lifespan=lifesp
 
 # 3. Handle CORS for production frontend domains (allows localhost + deployed frontend)
 raw_origins = os.getenv("CORS_ORIGINS", "")
-origins = [origin.strip() for origin in raw_origins.split(",") if origin.strip()] if raw_origins else ["*"]
+
+
+def normalise_origin(value: str) -> str:
+    """Turn a full Pages URL into the browser Origin value used by CORS."""
+    parsed = urlsplit(value.strip())
+    if parsed.scheme and parsed.netloc:
+        return f"{parsed.scheme}://{parsed.netloc}"
+    return value.strip().rstrip("/")
+
+
+configured_origins = [normalise_origin(origin) for origin in raw_origins.split(",") if origin.strip()]
+local_origins = ["http://localhost:3000", "http://localhost:5173", "http://127.0.0.1:3000", "http://127.0.0.1:5173"]
+origins = sorted(set(configured_origins + local_origins + ["https://bliss6578.github.io"]))
 
 app.add_middleware(
     CORSMiddleware,
