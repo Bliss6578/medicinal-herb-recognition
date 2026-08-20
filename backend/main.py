@@ -16,7 +16,7 @@ import numpy as np
 import tensorflow as tf
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from PIL import Image, UnidentifiedImageError
+from PIL import Image, ImageOps, UnidentifiedImageError
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -74,7 +74,7 @@ async def predict(image: UploadFile = File(...)) -> dict:
     if len(raw) > MAX_UPLOAD_BYTES:
         raise HTTPException(413, "Image must be 10 MB or smaller.")
     try:
-        picture = Image.open(io.BytesIO(raw)).convert("RGB")
+        picture = ImageOps.exif_transpose(Image.open(io.BytesIO(raw))).convert("RGB")
     except UnidentifiedImageError as error:
         raise HTTPException(400, "The uploaded file is not a valid image.") from error
     try:

@@ -34,6 +34,14 @@ export default function Home() {
 
   useEffect(() => () => streamRef.current?.getTracks().forEach((track) => track.stop()), []);
 
+  useEffect(() => {
+    const video = videoRef.current;
+    const stream = streamRef.current;
+    if (!cameraOpen || !cameraReady || !video || !stream) return;
+    video.srcObject = stream;
+    video.play().catch(() => toast.error("Camera preview could not start."));
+  }, [cameraOpen, cameraReady]);
+
   const handleFile = (file?: File) => {
     if (!file) return;
     if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
@@ -49,14 +57,22 @@ export default function Home() {
   };
 
   const openCamera = async () => {
+    if (!navigator.mediaDevices?.getUserMedia || !window.isSecureContext) {
+      toast.error("Camera access requires HTTPS (or localhost) and browser permission.");
+      return;
+    }
     setCameraOpen(true);
+    setCameraReady(false);
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: "environment" }, width: { ideal: 1280 }, height: { ideal: 960 } },
+        audio: false,
+      });
       streamRef.current = stream;
-      if (videoRef.current) videoRef.current.srcObject = stream;
       setCameraReady(true);
     } catch {
-      toast.error("Camera access is unavailable. You can upload a photo instead.");
+      setCameraOpen(false);
+      toast.error("Camera permission was not granted. You can upload a photo instead.");
     }
   };
 
